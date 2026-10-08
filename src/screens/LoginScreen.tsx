@@ -17,7 +17,17 @@ export default function LoginScreen() {
     }
 
     setLoading(true);
-    await authService.signIn(email, password);
+
+    const exito = await authService.signIn(email, password);
+
+    if (exito) {
+      if (Platform.OS === 'web') {
+        alert('¡Bienvenido!\nHas iniciado sesión correctamente.');
+      } else {
+        Alert.alert('¡Bienvenido!', 'Has iniciado sesión correctamente.');
+      }
+    }
+
     setLoading(false);
   };
 
