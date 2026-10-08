@@ -8,28 +8,19 @@ export class LibroService {
     this.repository = LibroRepository.getInstance();
   }
 
-  obtenerLibros(): Libro[] {
-    return this.repository.obtenerLibros();
+  async obtenerLibros(): Promise<Libro[]> {
+    return await this.repository.obtenerLibros();
   }
 
-  agregarLibro(libro: Libro): void {
-    this.repository.agregarLibro(libro);
+  async agregarLibro(libro: Omit<Libro, 'id' | 'created_at'>): Promise<Libro | null> {
+    return await this.repository.agregarLibro(libro);
   }
 
-  eliminarLibro(id: string): void {
-    this.repository.eliminarLibro(id);
+  async eliminarLibro(id: number): Promise<boolean> {
+    return await this.repository.eliminarLibro(id);
   }
 
   obtenerInstanciaRepo(): LibroRepository {
     return this.repository;
   }
 }
-
-const service1 = new LibroService();
-const service2 = new LibroService();
-
-const repo1 = service1.obtenerInstanciaRepo();
-const repo2 = service2.obtenerInstanciaRepo();
-
-console.log('COMPROBACIÓN DEL PATRÓN SINGLETON');
-console.log('¿Son ambas instancias idénticas?:', repo1 === repo2);

@@ -1,23 +1,61 @@
-# Mis Libros - Proyecto POO y Separación de Responsabilidades
+# Mis Libros 
 
-## Respuestas a la Reflexión
+Aplicación móvil y web desarrollada con **React Native (Expo)**, **TypeScript** y **Supabase** para la gestión CRUD de una base de datos de libros, incluyendo autenticación de usuarios y seguridad en el acceso a los datos.
 
-### 1. ¿Por qué es conveniente separar la lógica de los libros de App.tsx?
-Separar la lógica permite aplicar el principio de responsabilidad única (SRP). Mantener App.tsx enfocado únicamente en la representación visual y el manejo de eventos de usuario previene el código complejo, facilita el mantenimiento, simplifica la depuración y permite reutilizar o cambiar la interfaz gráfica sin alterar la regla de negocio.
+---
 
-### 2. ¿Qué responsabilidad tiene LibroService?
-LibroService actúa como el gestor de datos de la aplicación (capa de servicio). Su responsabilidad es administrar la colección de libros: crear nuevas instancias, almacenar la lista, consultar los libros guardados y ejecutar la lógica de eliminación. Desacopla el almacenamiento de la vista.
+## Relación entre Autenticación y Acceso a Datos
 
-### 3. ¿Qué responsabilidad tiene la clase Libro?
-La clase Libro representa el modelo del dominio (entidad). Su responsabilidad es definir la estructura interna de un libro (propiedades como id, titulo, autor, anio), garantizar el encapsulamiento de sus atributos mediante modificadores de acceso y exponer métodos propios relativos al comportamiento de un libro individual (como formatear su propia descripción).
+En esta aplicación, el acceso a los datos está estrictamente vinculado al estado de la sesión del usuario mediante la arquitectura de **Supabase Auth** y las políticas de seguridad **RLS (Row Level Security)**:
 
-# Mis Libros - Actualización Tarea 6
+1. **Control de Navegación y Flujo de Sesión**:
+   * El componente principal `App.tsx` escucha activamente los cambios de estado en la autenticación (`onAuthStateChange`).
+   * Si no existe un usuario autenticado con un token JWT válido, la aplicación restringe el acceso visual y operativo, mostrando únicamente la pantalla de inicio de sesión (`LoginScreen`).
+   * Una vez iniciada la sesión, las peticiones HTTP realizadas desde `LibroRepository` adjuntan automáticamente el token de acceso del usuario autenticado en las cabeceras.
 
-## Cambios Realizados
-- **Patrón Singleton**: Implementación del patrón Singleton en `LibroRepository` para garantizar una única instancia del repositorio en toda la aplicación.
-- **Patrón Repository**: Separación de la lógica de acceso a datos (`LibroRepository`) de la capa de servicios (`LibroService`).
-- **Prueba de Instancia**: Validación por consola demostrando que ambas instancias son idénticas (`true`).
+2. **Seguridad a Nivel de Base de Datos (Row Level Security - RLS)**:
+   * **Autenticación vs. Autorización**: La autenticación verifica la identidad del usuario (`AuthService`), mientras que la base de datos (PostgreSQL en Supabase) autoriza si dicho usuario tiene permiso para ejecutar consultas `SELECT`, `INSERT` o `DELETE` sobre la tabla `libros`.
+   * **Políticas RLS**: A través de las políticas RLS habilitadas en la tabla `libros`, se garantiza que únicamente los usuarios con una sesión activa (`auth.role() = 'authenticated'`) puedan realizar operaciones CRUD, impidiendo el acceso anónimo no autorizado a nivel de API.
 
-## Evidencias
-- Captura del funcionamiento de la aplicación.
-- Captura de la prueba del Singleton en consola (`¿Son ambas instancias idénticas?: true`).
+---
+
+## Características
+
+* **Autenticación completa**: Registro e inicio de sesión de usuarios con Supabase Auth.
+* **Gestión de Libros (CRUD)**:
+  * Consultar la lista de libros registrados.
+  * Agregar nuevos libros con datos de título, autor y año de publicación.
+  * Eliminar libros existentes.
+* **Persistencia de sesión**: Mantener la sesión del usuario iniciada mediante `@react-native-async-storage/async-storage`.
+* **Soporte Multiplataforma**: Funciona en Web, Android e iOS gracias a Expo.
+
+---
+
+## Tecnologías Utilizadas
+
+* **Framework**: [Expo](https://expo.dev/) (React Native)
+* **Lenguaje**: [TypeScript](https://www.typescriptlang.org/)
+* **Base de Datos y Backend**: [Supabase](https://supabase.com/) (`@supabase/supabase-js`)
+* **Almacenamiento Local**: `@react-native-async-storage/async-storage`
+* **Polyfills**: `react-native-url-polyfill`
+
+---
+
+##  Estructura del Proyecto
+
+```text
+mis-libros/
+├── src/
+│   ├── lib/
+│   │   └── supabase.ts          # Configuración e inicialización del cliente Supabase
+│   ├── types/                   # Interfases y tipos de TypeScript (Libro.ts)
+│   ├── repositories/
+│   │   └── LibroRepository.ts   # Operaciones CRUD con la tabla 'libros'
+│   ├── services/
+│   │   └── AuthService.ts       # Servicios de Registro, Login y Logout
+│   └── screens/
+│       ├── LoginScreen.tsx      # Pantalla de autenticación
+│       └── HomeScreen.tsx       # Pantalla principal con lista y formulario CRUD
+├── App.tsx                      # Componente principal y control de sesión
+├── package.json
+└── README.md

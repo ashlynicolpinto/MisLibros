@@ -1,32 +1,56 @@
+import { supabase } from '../lib/supabase';
 import { Libro } from '../models/Libro';
 
 export class LibroRepository {
-  private static instancia: LibroRepository;
-
-  private libros: Libro[] = [
-    { id: '1', title: 'Cien años de soledad', author: 'Gabriel García Márquez' },
-    { id: '2', title: 'Don Quijote de la Mancha', author: 'Miguel de Cervantes' },
-    { id: '3', title: 'El Principito', author: 'Antoine de Saint-Exupéry' }
-  ];
-
-  private constructor() {}
+  private static instance: LibroRepository;
 
   public static getInstance(): LibroRepository {
-    if (!LibroRepository.instancia) {
-      LibroRepository.instancia = new LibroRepository();
+    if (!LibroRepository.instance) {
+      LibroRepository.instance = new LibroRepository();
     }
-    return LibroRepository.instancia;
+    return LibroRepository.instance;
   }
 
-  public obtenerLibros(): Libro[] {
-    return [...this.libros];
+  async obtenerLibros(): Promise<Libro[]> {
+    const { data, error } = await supabase
+      .from('libros')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error al obtener libros:', error.message);
+      return [];
+    }
+
+    return data || [];
   }
 
-  public agregarLibro(libro: Libro): void {
-    this.libros.push(libro);
+  async agregarLibro(libro: Omit<Libro, 'id' | 'created_at'>): Promise<Libro | null> {
+    const { data, error } = await supabase
+      .from('libros')
+      .insert([libro])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error al agregar libro:', error.message);
+      return null;
+    }
+
+    return data;
   }
 
-  public eliminarLibro(id: string): void {
-    this.libros = this.libros.filter(libro => libro.id !== id);
+  async eliminarLibro(id: number): Promise<boolean> {
+    const { error } = await supabase
+      .from('libros')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error al eliminar libro:', error.message);
+      return false;
+    }
+
+    return true;
   }
 }

@@ -1,5 +1,6 @@
 export interface Libro {
-  id: string;
-  title: string;
-  author: string;
+  id?: number;
+  titulo: string;
+  autor: string;
+  anio: number;
 }
